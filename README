@@ -1,0 +1,8 @@
+This package consist of the notification-service implementation picked out of the Tizen data-provider-master project at:
+https://review.tizen.org/git/?p=platform/framework/web/data-provider-master.git;a=summary
+
+This implementation had no real dependencies on the rest of the services provided by data-provider-master which were very mobile profile specific, so it was forked into this new project and adopted as an IVI component.
+
+Eventually this project might be proposed as a generic Tizen 3.0 component, with the old implementation in data-provider-master removed, but first the implementation will be proven and optimized in the IVI profile (even though there is nothing IVI specific about this code.)
+
+

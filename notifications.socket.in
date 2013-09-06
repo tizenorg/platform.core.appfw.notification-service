@@ -1,0 +1,5 @@
+[Socket]
+ListenStream=/tmp/.notification.service
+
+[Install]
+WantedBy=sockets.target
