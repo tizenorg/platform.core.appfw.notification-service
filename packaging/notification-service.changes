@@ -1,3 +1,7 @@
+* Mon Sep 16 2013 Rusty Lynch <rusty.lynch@intel.com> submit/tizen/20130906.193836@a298f87
+- Remove socket cleanup code
+- Add unit test for sending and recieving notifications
+
 * Fri Sep 06 2013 Rusty Lynch <rusty.lynch@intel.com> 3fb22fc
 - Initial import
 
