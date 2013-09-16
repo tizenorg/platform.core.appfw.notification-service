@@ -575,18 +575,6 @@ struct service_context *service_common_create(const char *addr, int (*service_th
 		return NULL;
 	}
 
-    /* 
-     * cleanup old socket file
-     */
-    struct stat tmp;
-    if (!stat(addr, &tmp)) {
-        if (unlink(addr)) {
-            perror("Unable to unlink old socket file");
-            free(svc_ctx);
-            return NULL;
-        }
-    }
-
 	svc_ctx->fd = secure_socket_create_server(addr);
 	if (svc_ctx->fd < 0) {
 		free(svc_ctx);
