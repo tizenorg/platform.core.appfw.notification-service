@@ -9,6 +9,10 @@ BuildRequires: pkgconfig(eina)
 BuildRequires: pkgconfig(ecore) 
 BuildRequires: pkgconfig(com-core) 
 BuildRequires: pkgconfig(notification)
+BuildRequires: dbus-devel
+BuildRequires: pkgconfig(dbus-glib-1)
+BuildRequires: bluetooth-frwk-devel
+BuildRequires: bundle-devel
 
 %description
 Headless notification service that collects incoming notifications from the
@@ -45,3 +49,4 @@ rm -rf %{buildroot}
 %defattr(-,root,root,-)
 %{_bindir}/sample-display-client
 %{_bindir}/send-notification
+%{_bindir}/bluetooth_notification_client
