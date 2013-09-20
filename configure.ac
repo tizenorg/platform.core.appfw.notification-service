@@ -10,7 +10,7 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
 PKG_PROG_PKG_CONFIG()
-PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification])
+PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification dbus-1 bluetooth-api])
 AC_SUBST(TIZEN_CFLAGS)
 AC_SUBST(TIZEN_LIBS)
 
