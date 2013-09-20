@@ -121,7 +121,7 @@ main(int argc, char **argv)
     }
 
     err = notification_set_text(noti, NOTIFICATION_TEXT_TYPE_CONTENT,
-                                title ? title : "Default Content",
+                                content ? content : "Default Content",
                                 NULL, NOTIFICATION_VARIABLE_TYPE_NONE);
     if (err != NOTIFICATION_ERROR_NONE) {
         fprintf(stderr, "Unable to set notification content: %s\n", error_to_string(err));

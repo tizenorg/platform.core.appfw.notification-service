@@ -11,6 +11,7 @@ static void __noti_changed_cb(void *data, notification_type_e type)
     char *pkgname = NULL;
     char *title = NULL;
     char *str_count = NULL;
+    char *content = NULL;
     int i = 1;
     char buf[512] = {0};
 
@@ -32,8 +33,10 @@ static void __noti_changed_cb(void *data, notification_type_e type)
                 count = atoi(str_count);
             }
             notification_get_title(noti, &title, NULL);
+            notification_get_text(noti, NOTIFICATION_TEXT_TYPE_CONTENT, &content);
 
-            fprintf(stdout, "NOTIFICATION: %s - %s - %i - %i\n", pkgname, title, count, num);
+
+            fprintf(stdout, "NOTIFICATION: %s - %s - %s - %i - %i\n", pkgname, title, content, count, num);
 
             get_list = notification_list_get_next(get_list);
             noti = notification_list_get_data(get_list);
