@@ -100,11 +100,12 @@ __display_notification(bt_notification cb_1, bt_notification cb_2, DBusGProxy *p
          notification_error_e err = NOTIFICATION_ERROR_NONE;
          int bt_yesno;
          bt_yesno = 1;
-         char line[256];
+         char line[4];
 
          fprintf(stdout, "Do you confirm yes or no ? ");
          while ( bt_yesno != 0){
-                 gets(line);
+                 if (!fgets(line, sizeof(line), stdin))
+                         continue;
                  if ( strcmp(line,"yes") == 0){
                          (cb_1) (proxy);
                          bt_yesno = 0;
@@ -122,7 +123,7 @@ __display_notification(bt_notification cb_1, bt_notification cb_2, DBusGProxy *p
 
 }
 
-static int __noti_changed_cb(void *data, notification_type_e type)
+static void __noti_changed_cb(void *data, notification_type_e type)
 {
          notification_h noti = NULL;
          notification_list_h notification_list = NULL;
@@ -180,13 +181,13 @@ static int __noti_changed_cb(void *data, notification_type_e type)
                         sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
                         if (sys_conn == NULL) {
                                 fprintf(stdout,"ERROR: Can't get on system bus");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                         agent_proxy = __bluetooth_create_agent_proxy(sys_conn, agent_path);
                         if (!agent_proxy){
                                 fprintf(stdout,"create new agent_proxy failed\n");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                          __display_notification(__notify_passkey_confirm_request_accept_cb, __notify_passkey_confirm_request_cancel_cb,agent_proxy);
@@ -205,13 +206,13 @@ static int __noti_changed_cb(void *data, notification_type_e type)
                         sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
                         if (sys_conn == NULL) {
                                 fprintf(stdout,"ERROR: Can't get on system bus");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                         agent_proxy = __bluetooth_create_agent_proxy(sys_conn, agent_path);
                         if (!agent_proxy){
                                 fprintf(stdout,"create new agent_proxy failed\n");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                         __display_notification( __notify_authorize_request_accept_cb, __notify_authorize_request_cancel_cb,agent_proxy);
@@ -226,13 +227,13 @@ static int __noti_changed_cb(void *data, notification_type_e type)
                         sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
                         if (sys_conn == NULL) {
                                 fprintf(stdout,"ERROR: Can't get on system bus");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                         obex_proxy = __bluetooth_create_obex_proxy(sys_conn);
                         if (!obex_proxy){
                                 fprintf(stdout,"create new obex_proxy failed\n");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                         __display_notification( __notify_push_authorize_request_accept_cb, __notify_push_authorize_request_cancel_cb,obex_proxy);
@@ -255,13 +256,13 @@ static int __noti_changed_cb(void *data, notification_type_e type)
                         sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
                         if (sys_conn == NULL) {
                                 fprintf(stdout,"ERROR: Can't get on system bus");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                         agent_proxy = __bluetooth_create_agent_proxy(sys_conn, agent_path);
                         if (!agent_proxy){
                                 fprintf(stdout,"create new agent_proxy failed\n");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                         __display_notification( __notify_authorize_request_accept_cb, __notify_authorize_request_cancel_cb,agent_proxy);
@@ -272,13 +273,13 @@ static int __noti_changed_cb(void *data, notification_type_e type)
                         sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
                         if (sys_conn == NULL) {
                                 fprintf(stdout,"ERROR: Can't get on system bus");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                         agent_proxy = __bluetooth_create_agent_proxy(sys_conn, agent_path);
                         if (!agent_proxy){
                                 fprintf(stdout,"create new agent_proxy failed\n");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                         __display_notification( __notify_authorize_request_accept_cb, __notify_authorize_request_cancel_cb,agent_proxy);
@@ -289,13 +290,13 @@ static int __noti_changed_cb(void *data, notification_type_e type)
                         sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
                         if (sys_conn == NULL) {
                                 fprintf(stdout,"ERROR: Can't get on system bus");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                         agent_proxy = __bluetooth_create_agent_proxy(sys_conn, agent_path);
                         if (!agent_proxy){
                                 fprintf(stdout,"create new agent_proxy failed\n");
-                                return EXIT_FAILURE;
+                                return;
                         }
 
                         __display_notification( __notify_authorize_request_accept_cb,  __notify_authorize_request_cancel_cb,agent_proxy);
@@ -306,7 +307,7 @@ static int __noti_changed_cb(void *data, notification_type_e type)
                  notification_list = NULL;
         }
 
-        return EXIT_SUCCESS;
+        return;
 }
 
 int

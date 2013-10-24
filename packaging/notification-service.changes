@@ -1,3 +1,7 @@
+* Thu Oct 24 2013 Rusty Lynch <rusty.lynch@intel.com> accepted/tizen/20130920.213625@237321e
+- Fix build warnings by no longer using 'gets' and fixing the
+  prototype for notification callback
+
 * Fri Sep 20 2013 Rusty Lynch <rusty.lynch@intel.com> accepted/tizen/20130917.000007@6b2a8d7
 - Add Bluetooth-client-notification to test bluetooth pairing
 - Send and display content from notification
