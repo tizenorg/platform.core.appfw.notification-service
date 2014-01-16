@@ -9,10 +9,11 @@ BuildRequires: pkgconfig(eina)
 BuildRequires: pkgconfig(ecore) 
 BuildRequires: pkgconfig(com-core) 
 BuildRequires: pkgconfig(notification)
-BuildRequires: dbus-devel
+BuildRequires: pkgconfig(dbus-1)
 BuildRequires: pkgconfig(dbus-glib-1)
-BuildRequires: bluetooth-frwk-devel
-BuildRequires: bundle-devel
+BuildRequires: pkgconfig(bluetooth-api)
+BuildRequires: pkgconfig(bundle)
+%{?systemd_requires}
 
 %description
 Headless notification service that collects incoming notifications from the
@@ -28,22 +29,28 @@ This package provides unit test used in the development of the notification serv
 %prep
 %setup -q -n %{name}-%{version}
 
-%define PREFIX %{_prefix}/apps/
-
 %build
 %autogen
 make %{?_smp_mflags}
 
 %install
-rm -rf %{buildroot}
 %make_install
+%install_service graphical.target.wants notifications.service
+
+%post
+%systemd_post notifications.service
+
+%preun
+%systemd_preun notifications.service
+
+%postun
+%systemd_postun notifications.service
 
 %files
 %defattr(-,root,root,-)
 %{_bindir}/notification-service
-%{_libdir}/systemd/system/notifications.service
-%{_libdir}/systemd/system/notifications.socket
-%{_libdir}/systemd/system/sockets.target.wants/notifications.socket
+%{_unitdir}/notifications.service
+%{_unitdir}/graphical.target.wants/notifications.service
 
 %files test
 %defattr(-,root,root,-)
