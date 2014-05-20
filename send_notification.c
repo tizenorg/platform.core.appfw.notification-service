@@ -75,6 +75,7 @@ main(int argc, char **argv)
     char *icon = NULL;
     char *image = NULL;
     int imageType = 0;
+    Eina_Bool quit = EINA_FALSE;
     Eina_Bool remove = EINA_FALSE;
     notification_h noti = NULL;
     notification_error_e err = NOTIFICATION_ERROR_NONE;
@@ -85,7 +86,8 @@ main(int argc, char **argv)
         ECORE_GETOPT_VALUE_STR(icon),
         ECORE_GETOPT_VALUE_STR(image),
         ECORE_GETOPT_VALUE_INT(imageType),
-        ECORE_GETOPT_VALUE_NONE
+        ECORE_GETOPT_VALUE_NONE,
+        ECORE_GETOPT_VALUE_BOOL(quit)
     };
 
     if (!ecore_init()) {
@@ -97,6 +99,9 @@ main(int argc, char **argv)
         fprintf(stderr, "Parsing arguments failed!\n");
         return -1;
     }
+
+    if (quit)
+       return 0;
 
     noti = notification_new(NOTIFICATION_TYPE_NOTI,
                             NOTIFICATION_GROUP_ID_NONE,
