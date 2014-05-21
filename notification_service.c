@@ -16,8 +16,8 @@
 #include <stdio.h>
 #include <Eina.h>
 #include <packet.h>
-#include <notification_ipc.h>
-#include <notification_noti.h>
+#include <service/notification_ipc.h>
+#include <service/notification_noti.h>
 #include <notification_error.h>
 
 #include "service_common.h"

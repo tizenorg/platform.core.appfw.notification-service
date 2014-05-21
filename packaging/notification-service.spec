@@ -5,10 +5,11 @@ Release:    1
 Group:      Application Framework/Notifications
 License:    Flora
 Source0:    %{name}-%{version}.tar.bz2
-BuildRequires: pkgconfig(eina) 
-BuildRequires: pkgconfig(ecore) 
-BuildRequires: pkgconfig(com-core) 
+BuildRequires: pkgconfig(eina)
+BuildRequires: pkgconfig(ecore)
+BuildRequires: pkgconfig(com-core)
 BuildRequires: pkgconfig(notification)
+BuildRequires: pkgconfig(notification-service)
 BuildRequires: pkgconfig(dbus-1)
 BuildRequires: pkgconfig(dbus-glib-1)
 BuildRequires: pkgconfig(bluetooth-api)
