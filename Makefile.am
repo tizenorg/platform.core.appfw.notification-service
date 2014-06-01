@@ -3,6 +3,10 @@ bin_PROGRAMS = notification-service sample-display-client send-notification blue
 AM_CFLAGS = $(GCC_CFLAGS)
 AM_CPPFLAGS = $(GCC_CFLAGS)
 
+if HAVE_WAYLAND
+AM_CPPFLAGS += -DHAVE_WAYLAND
+endif
+
 notification_service_SOURCES = \
     main.c \
     notification_service.c \

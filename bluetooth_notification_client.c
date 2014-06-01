@@ -6,6 +6,9 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
 #include <bundle.h>
+#ifdef HAVE_WAYLAND
+#include <libwlmessage.h>
+#endif
 
 typedef enum {
            BT_AGENT_ACCEPT,
@@ -102,6 +105,20 @@ __display_notification(bt_notification cb_1, bt_notification cb_2, DBusGProxy *p
          bt_yesno = 1;
          char line[4];
 
+#ifdef HAVE_WAYLAND
+         struct wlmessage *wlmessage = wlmessage_create();
+         wlmessage_set_message(wlmessage, "Do you confirm ?");
+         wlmessage_add_button(wlmessage, 1, "Yes");
+         wlmessage_add_button(wlmessage, 0, "No");
+         wlmessage_set_default_button(wlmessage, 1);
+         bt_yesno = wlmessage_show(wlmessage, NULL);
+         wlmessage_destroy(wlmessage);
+
+         if (bt_yesno == 1)
+                 (cb_1) (proxy);
+         else if (bt_yesno == 0)
+                 (cb_2) (proxy);
+#else
          fprintf(stdout, "Do you confirm yes or no ? ");
          while ( bt_yesno != 0){
                  if (!fgets(line, sizeof(line), stdin))
@@ -116,6 +133,7 @@ __display_notification(bt_notification cb_1, bt_notification cb_2, DBusGProxy *p
                          fprintf(stdout," yes or no :");
                  }
          }
+#endif
          err = notification_delete_all_by_type("bluetooth-frwk-bt-service", NOTIFICATION_TYPE_NOTI);
          if (err != NOTIFICATION_ERROR_NONE) {
                   fprintf(stdout, "Unable to remove notifications");

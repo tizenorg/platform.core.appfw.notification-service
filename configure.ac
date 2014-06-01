@@ -10,7 +10,12 @@ LT_PREREQ([2.2])
 LT_INIT([disable-static])
 
 PKG_PROG_PKG_CONFIG()
-PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification dbus-1 bluetooth-api])
+AC_ARG_ENABLE(wayland, [  --enable-wayland],, enable_wayland=no)
+AM_CONDITIONAL(HAVE_WAYLAND, test x$enable_wayland = xyes)
+if test "x$enable_wayland" = "xyes"; then
+  wayland_libs="libwlmessage"
+fi
+PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification dbus-1 bluetooth-api $wayland_libs])
 AC_SUBST(TIZEN_CFLAGS)
 AC_SUBST(TIZEN_LIBS)
 

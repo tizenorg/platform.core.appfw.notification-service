@@ -1,3 +1,5 @@
+%bcond_with wayland
+
 Name:       notification-service
 Summary:    Simple notification service
 Version:    0.0.3
@@ -14,6 +16,9 @@ BuildRequires: pkgconfig(dbus-1)
 BuildRequires: pkgconfig(dbus-glib-1)
 BuildRequires: pkgconfig(bluetooth-api)
 BuildRequires: pkgconfig(bundle)
+%if %{with wayland}
+BuildRequires: pkgconfig(libwlmessage)
+%endif
 %{?systemd_requires}
 
 %description
@@ -31,7 +36,11 @@ This package provides unit test used in the development of the notification serv
 %setup -q -n %{name}-%{version}
 
 %build
+%if %{with wayland}
+%autogen --enable-wayland
+%else
 %autogen
+%endif
 make %{?_smp_mflags}
 
 %install
