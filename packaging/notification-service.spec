@@ -59,6 +59,7 @@ make %{?_smp_mflags}
 %files
 %defattr(-,root,root,-)
 %{_bindir}/notification-service
+%{_bindir}/notification-display-service
 %{_unitdir}/notifications.service
 %{_unitdir}/graphical.target.wants/notifications.service
 

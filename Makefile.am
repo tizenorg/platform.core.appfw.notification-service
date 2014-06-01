@@ -1,4 +1,4 @@
-bin_PROGRAMS = notification-service sample-display-client send-notification bluetooth_notification_client
+bin_PROGRAMS = notification-service notification-display-service sample-display-client send-notification bluetooth_notification_client
 
 AM_CFLAGS = $(GCC_CFLAGS)
 AM_CPPFLAGS = $(GCC_CFLAGS)
@@ -13,6 +13,10 @@ notification_service_SOURCES = \
     service_common.c
 notification_service_CFLAGS = -I. $(TIZEN_CFLAGS)
 notification_service_LDADD = $(TIZEN_LIBS)
+
+notification_display_service_SOURCES = notification_display_service.c
+notification_display_service_CFLAGS = -I. $(TIZEN_CFLAGS)
+notification_display_service_LDADD = $(TIZEN_LIBS)
 
 send_notification_SOURCES = send_notification.c
 send_notification_CFLAGS = -I. $(TIZEN_CFLAGS)
