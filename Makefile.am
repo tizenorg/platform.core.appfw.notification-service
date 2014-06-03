@@ -31,8 +31,10 @@ bluetooth_notification_client_CFLAGS = -I. $(TIZEN_CFLAGS)
 bluetooth_notification_client_LDADD = $(TIZEN_LIBS)
 
 SCRIPT_IN_FILES = \
-     notifications.service.in
+     notifications.service.in \
+     notifications_display.service.in
 
 install-data-hook:
 	$(mkinstalldirs) $(DESTDIR)/usr/lib/systemd/system/
 	install -m 0644 notifications.service $(DESTDIR)/usr/lib/systemd/system/notifications.service
+	install -m 0644 notifications_display.service $(DESTDIR)/usr/lib/systemd/system/notifications_display.service
