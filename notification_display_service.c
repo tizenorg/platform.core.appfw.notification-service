@@ -70,7 +70,7 @@ int main (int argc, char **argv)
 	}
 
 	signal (SIGINT, sigint_handler);
-	wd = inotify_add_watch (fd, "/opt/dbspace/.notification.db", IN_MODIFY);
+	wd = inotify_add_watch (fd, "/usr/dbspace/.notification.db", IN_MODIFY);
 	while (1) {
 		read (fd, buffer, sizeof(buffer));
 		display_notifications ();
