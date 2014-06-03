@@ -31,7 +31,7 @@ void display_notifications ()
 	notification_get_list (NOTIFICATION_TYPE_NOTI, -1, &notification_list);
 	if (notification_list) {
 		get_list = notification_list_get_head (notification_list);
-		if (get_list) {
+		while (get_list) {
 			noti = notification_list_get_data (get_list);
 			notification_get_pkgname (noti, &pkgname);
 			if (pkgname == NULL)
@@ -50,7 +50,8 @@ void display_notifications ()
 			wlmessage_destroy (wlmessage);
 #			endif
 
-			notification_delete (noti);
+			get_list = notification_list_remove(get_list, noti);
+			notification_delete(noti);
 		}
 	}
 }
