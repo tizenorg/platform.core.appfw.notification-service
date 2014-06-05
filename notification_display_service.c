@@ -46,8 +46,15 @@ void display_notifications ()
 			wlmessage_set_icon (wlmessage, image_path);
 			wlmessage_set_message (wlmessage, content);
 			wlmessage_add_button (wlmessage, 0, "Ok");
-			wlmessage_show (wlmessage, NULL);
+			if (wlmessage_show (wlmessage, NULL) < 0) {
+				wlmessage_destroy (wlmessage);
+				return;
+			}
 			wlmessage_destroy (wlmessage);
+#			else
+			fprintf(stderr, "\nNew Notification : %s\n", title); 
+			fprintf(stderr, "Icon : %s\n", image_path); 
+			fprintf(stderr, "Message : %s\n", content); 
 #			endif
 
 			get_list = notification_list_remove(get_list, noti);
