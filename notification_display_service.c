@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 #include <signal.h>
 #include <sys/inotify.h>
@@ -27,6 +28,9 @@ void display_notifications ()
 	char *title = NULL;
 	char *content = NULL;
 	char *image_path = NULL;
+	char *info1 = NULL;
+	enum { NOTIF_TYPE_INFO, NOTIF_TYPE_USERPROMPT, NOTIF_TYPE_USERCONFIRM } type = 0;
+
 
 	notification_get_list (NOTIFICATION_TYPE_NOTI, -1, &notification_list);
 	if (notification_list) {
@@ -40,17 +44,45 @@ void display_notifications ()
 			notification_get_text (noti, NOTIFICATION_TEXT_TYPE_CONTENT, &content);
 			notification_get_image (noti, NOTIFICATION_IMAGE_TYPE_ICON, &image_path);
 
+			 /* react specifically to the source framework and event (TODO : plugins !) */
+			if (!strcmp(pkgname, "bt-agent")) {
+				notification_get_text (noti, NOTIFICATION_TEXT_TYPE_INFO_1, &info1);
+				if (info1) {
+					if ( (!strcmp(info1, "RequestPinCode")) || (!strcmp(info1, "RequestPasskey")) ) {
+						type = NOTIF_TYPE_USERPROMPT;
+					}
+					else if (!strcmp(info1, "RequestConfirmation")) {
+						type = NOTIF_TYPE_USERCONFIRM;
+						content = "Please confirm";
+					}
+				}
+			}
+
 #			ifdef HAVE_WAYLAND
 			struct wlmessage *wlmessage = wlmessage_create ();
-			wlmessage_set_title (wlmessage, title);
-			wlmessage_set_icon (wlmessage, image_path);
-			wlmessage_set_message (wlmessage, content);
-			wlmessage_add_button (wlmessage, 0, "Ok");
+			if (title)
+				wlmessage_set_title (wlmessage, title);
+			if (image_path)
+				wlmessage_set_icon (wlmessage, image_path);
+			if (content)
+				wlmessage_set_message (wlmessage, content);
+			else
+				wlmessage_set_message (wlmessage, "<Default>");
+			if (type == NOTIF_TYPE_USERPROMPT)
+				wlmessage_set_textfield (wlmessage, "");
+			if (type == NOTIF_TYPE_USERCONFIRM) {
+				wlmessage_add_button (wlmessage, 1, "Yes");
+				wlmessage_add_button (wlmessage, 0, "No");
+			} else {
+				wlmessage_add_button (wlmessage, 0, "Ok");
+			}
+
 			if (wlmessage_show (wlmessage, NULL) < 0) {
 				wlmessage_destroy (wlmessage);
 				return;
 			}
 			wlmessage_destroy (wlmessage);
+
 #			else
 			fprintf(stderr, "\nNew Notification : %s\n", title); 
 			fprintf(stderr, "Icon : %s\n", image_path); 
