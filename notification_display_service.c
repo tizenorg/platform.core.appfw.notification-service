@@ -3,6 +3,8 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/inotify.h>
+#include <sys/socket.h>
+#include <linux/un.h>
 #include <notification.h>
 #ifdef HAVE_WAYLAND
 #include <libwlmessage.h>
@@ -30,7 +32,7 @@ void display_notifications ()
 	char *image_path = NULL;
 	char *info1 = NULL;
 	enum { NOTIF_TYPE_INFO, NOTIF_TYPE_USERPROMPT, NOTIF_TYPE_USERCONFIRM } type = 0;
-
+	int clicked_button = 0;
 
 	notification_get_list (NOTIFICATION_TYPE_NOTI, -1, &notification_list);
 	if (notification_list) {
@@ -53,7 +55,7 @@ void display_notifications ()
 					}
 					else if (!strcmp(info1, "RequestConfirmation")) {
 						type = NOTIF_TYPE_USERCONFIRM;
-						content = "Please confirm";
+						content = strdup("Please confirm");
 					}
 				}
 			}
@@ -77,9 +79,33 @@ void display_notifications ()
 				wlmessage_add_button (wlmessage, 0, "Ok");
 			}
 
-			if (wlmessage_show (wlmessage, NULL) < 0) {
+			clicked_button = wlmessage_show (wlmessage, NULL);
+
+			if (clicked_button < 0) {
 				wlmessage_destroy (wlmessage);
 				return;
+			} else if ((clicked_button == 1) && (type == NOTIF_TYPE_USERCONFIRM)) {
+				if (!strcmp(pkgname, "bt-agent")) {
+					struct sockaddr_un addr;
+					int socket_fd, nbytes;
+					char buffer[256];
+
+					socket_fd = socket(PF_UNIX, SOCK_STREAM, 0);
+
+					memset (&addr, 0, sizeof(struct sockaddr_un));
+					addr.sun_family = AF_UNIX;
+					snprintf (addr.sun_path, UNIX_PATH_MAX, "/tmp/.bluetooth.service");
+
+					if (connect (socket_fd,
+					             (struct sockaddr *)&addr,
+					             sizeof(struct sockaddr_un)) != 0) {
+						fprintf(stderr, "Cannot connect to /tmp/.bluetooth.service\n");
+					} else {
+						nbytes = snprintf(buffer, 256, "1 clicked");
+						write (socket_fd, buffer, nbytes);
+						close (socket_fd);
+					}
+				}
 			}
 			wlmessage_destroy (wlmessage);
 
