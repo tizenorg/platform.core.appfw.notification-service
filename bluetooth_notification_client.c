@@ -2,107 +2,29 @@
 #include <notification.h>
 #include <unistd.h>
 
-#include <dbus/dbus.h>
-#include <dbus/dbus-glib.h>
-#include <dbus/dbus-glib-lowlevel.h>
 #include <bundle.h>
 #ifdef HAVE_WAYLAND
 #include <libwlmessage.h>
 #endif
 
-typedef enum {
-           BT_AGENT_ACCEPT,
-           BT_AGENT_REJECT,
-           BT_AGENT_CANCEL,
-           BT_CORE_AGENT_TIMEOUT,
-} bt_agent_accept_type_t;
+#include <bundle.h>
 
+#include <bluetooth.h>
+#include <dlog.h>
 
-typedef void (*bt_notification)(DBusGProxy *proxy);
+#define POPUP_TYPE_INFO  "user_info_popup"
+#define POPUP_TYPE_USERCONFIRM "user_confirm_popup"
+#define POPUP_TYPE_USERPROMPT "user_agreement_popup"
 
-static DBusGProxy*
-__bluetooth_create_agent_proxy(DBusGConnection *sys_conn, const char *path)
+static void display_user_information_popup(void) {};
+
+static void display_user_prompt_popup(void) {};
+
+static void display_user_confirmation_popup(void) 
 {
-        return dbus_g_proxy_new_for_name (sys_conn,
-                                          "org.projectx.bt",
-                                          path,
-                                          "org.bluez.Agent1");
-}
-
-static DBusGProxy*
-__bluetooth_create_obex_proxy(DBusGConnection *sys_conn)
-{
-        return dbus_g_proxy_new_for_name(sys_conn,
-                                         "org.bluez.frwk_agent",
-                                         "/org/obex/ops_agent",
-                                         "org.openobex.Agent");
-}
-
-static void
-__notify_passkey_confirm_request_accept_cb( DBusGProxy* agent_proxy)
-{
-        dbus_g_proxy_call_no_reply( agent_proxy, "ReplyConfirmation",
-                                   G_TYPE_UINT, BT_AGENT_ACCEPT,
-                                   G_TYPE_INVALID, G_TYPE_INVALID);
-
-}
-
-static void
-__notify_passkey_confirm_request_cancel_cb(DBusGProxy* agent_proxy)
-{
-
-        dbus_g_proxy_call_no_reply( agent_proxy, "ReplyConfirmation",
-                                    G_TYPE_UINT, BT_AGENT_CANCEL,
-                                    G_TYPE_INVALID, G_TYPE_INVALID);
-
-}
-
-static void
-__notify_push_authorize_request_accept_cb(DBusGProxy* obex_proxy)
-{
-
-        dbus_g_proxy_call_no_reply( obex_proxy, "ReplyAuthorize",
-                                    G_TYPE_UINT, BT_AGENT_ACCEPT,
-                                    G_TYPE_INVALID, G_TYPE_INVALID);
-
-}
-
-static void
-__notify_push_authorize_request_cancel_cb(DBusGProxy* obex_proxy)
-{
-
-        dbus_g_proxy_call_no_reply( obex_proxy, "ReplyAuthorize",
-                                    G_TYPE_UINT, BT_AGENT_CANCEL,
-                                    G_TYPE_INVALID, G_TYPE_INVALID);
-
-}
-
-static void
-__notify_authorize_request_accept_cb(DBusGProxy* agent_proxy)
-{
-
-         dbus_g_proxy_call_no_reply( agent_proxy, "ReplyAuthorize",
-                                     G_TYPE_UINT, BT_AGENT_ACCEPT,
-                                     G_TYPE_INVALID, G_TYPE_INVALID);
-}
-
-static void
-__notify_authorize_request_cancel_cb(DBusGProxy* agent_proxy)
-{
-
-         dbus_g_proxy_call_no_reply( agent_proxy, "ReplyAuthorize",
-                                     G_TYPE_UINT, BT_AGENT_CANCEL,
-                                     G_TYPE_INVALID, G_TYPE_INVALID);
-
-}
-
-static int
-__display_notification(bt_notification cb_1, bt_notification cb_2, DBusGProxy *proxy)
-{
-
          notification_error_e err = NOTIFICATION_ERROR_NONE;
-         int bt_yesno;
-         bt_yesno = 1;
+         int bt_yesno = 1;
+
          char line[4];
 
 #ifdef HAVE_WAYLAND
@@ -115,28 +37,31 @@ __display_notification(bt_notification cb_1, bt_notification cb_2, DBusGProxy *p
          wlmessage_destroy(wlmessage);
 
          if (bt_yesno == 1)
-                 (cb_1) (proxy);
+                 bt_agent_reply_sync(0);
          else if (bt_yesno == 0)
-                 (cb_2) (proxy);
+                 bt_agent_reply_sync(1);
 #else
          fprintf(stdout, "Do you confirm yes or no ? ");
          while ( bt_yesno != 0){
                  if (!fgets(line, sizeof(line), stdin))
                          continue;
-                 if ( strcmp(line,"yes") == 0){
-                         (cb_1) (proxy);
+                 if ( strncmp("yes", line, 3) == 0) {
+                         LOGD("user accepts to pair with device ");
+                         bt_agent_reply_sync(0);
                          bt_yesno = 0;
-                 } else if ( strcmp(line,"no") == 0){
-                         (cb_2) (proxy);
+                 } else if ( strncmp("no", line, 2) == 0) {
+                         LOGD("user rejects to pair with device ");
+                         bt_agent_reply_sync(1);
                          bt_yesno = 0;
                  } else {
-                         fprintf(stdout," yes or no :");
+                         fprintf(stdout," yes or no ?\n");
+                         continue;
                  }
          }
 #endif
-         err = notification_delete_all_by_type("bluetooth-frwk-bt-service", NOTIFICATION_TYPE_NOTI);
+         err = notification_delete_all_by_type("bt-agent", NOTIFICATION_TYPE_NOTI);
          if (err != NOTIFICATION_ERROR_NONE) {
-                  fprintf(stdout, "Unable to remove notifications");
+                  LOGE("Unable to remove notifications");
          }
 
 }
@@ -146,25 +71,32 @@ static void __noti_changed_cb(void *data, notification_type_e type)
          notification_h noti = NULL;
          notification_list_h notification_list = NULL;
          notification_list_h get_list = NULL;
-         int count = 0, group_id = 0, priv_id = 0, show_noti = 0, num = 1;
+         notification_error_e noti_err = NOTIFICATION_ERROR_NONE;
+
+         LOGD("listen to new notifications...");
+
+         int count = 0, group_id = 0, priv_id = 0, num = 1;
          char *pkgname = NULL;
          char *title = NULL;
          char *str_count = NULL;
          char *content= NULL;
          bundle *user_data = NULL;
-         DBusGConnection *sys_conn;
-         DBusGProxy *agent_proxy;
-         DBusGProxy *obex_proxy;
-
 
          const char *device_name = NULL;
          const char *passkey = NULL;
-         const char *file = NULL;
          const char *agent_path;
          const char *event_type = NULL;
 
-         notification_get_list(NOTIFICATION_TYPE_NOTI, -1, &notification_list);
+         char *popup_type = NULL;
+
+         noti_err = notification_get_list(NOTIFICATION_TYPE_NOTI, -1, &notification_list);
+         if (noti_err != NOTIFICATION_ERROR_NONE) {
+                LOGE("notification_get_list() failed (error code = %d)", noti_err);
+         }
+
          if (notification_list) {
+                LOGD("new notificiation received");
+
                 get_list = notification_list_get_head(notification_list);
                 noti = notification_list_get_data(get_list);
                 notification_get_id(noti, &group_id, &priv_id);
@@ -185,162 +117,42 @@ static void __noti_changed_cb(void *data, notification_type_e type)
 
                 fprintf(stdout, "NOTIFICATION: %s - %s - %s - %i - %i \n", pkgname, title, content, count, num);
 
-                event_type = bundle_get_val(user_data, "event-type");
+                notification_get_text(noti, NOTIFICATION_TEXT_TYPE_INFO_1, &popup_type);
+                LOGD("'%s' notification type [%s]", pkgname, popup_type);
 
-                if(!strcasecmp(event_type, "pin-request")) {
-                        /* Not implemented */
-                        fprintf(stdout," Not implemented\n");
+                if (!strcasecmp(POPUP_TYPE_INFO, popup_type))
+                  display_user_information_popup();
+                else if (!strcasecmp(POPUP_TYPE_USERCONFIRM, popup_type))
+                  display_user_confirmation_popup();
+                else if (!strcasecmp(POPUP_TYPE_USERPROMPT, popup_type))
+                  display_user_prompt_popup();
+                else
+                  LOGE("popup type is not recognized !");
 
-                } else if (!strcasecmp(event_type, "passkey-confirm-request")){
-                        device_name = (gchar*) bundle_get_val(user_data, "device-name");
-                        passkey = (gchar*) bundle_get_val(user_data, "passkey");
-                        agent_path = bundle_get_val(user_data, "agent-path");
 
-                        sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
-                        if (sys_conn == NULL) {
-                                fprintf(stdout,"ERROR: Can't get on system bus");
-                                return;
-                        }
-
-                        agent_proxy = __bluetooth_create_agent_proxy(sys_conn, agent_path);
-                        if (!agent_proxy){
-                                fprintf(stdout,"create new agent_proxy failed\n");
-                                return;
-                        }
-
-                         __display_notification(__notify_passkey_confirm_request_accept_cb, __notify_passkey_confirm_request_cancel_cb,agent_proxy);
-                } else if (!strcasecmp(event_type, "passkey-request")) {
-                        /* Not implemented */
-                        fprintf(stdout," Not implemented\n");
-
-                } else if (!strcasecmp(event_type, "passkey-display-request")) {
-                        /* Not implemented */
-                        fprintf(stdout," Not implemented\n");
-
-                } else if (!strcasecmp(event_type, "authorize-request")) {
-                        device_name = (gchar*) bundle_get_val(user_data, "device-name");
-                        agent_path = bundle_get_val(user_data, "agent-path");
-
-                        sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
-                        if (sys_conn == NULL) {
-                                fprintf(stdout,"ERROR: Can't get on system bus");
-                                return;
-                        }
-
-                        agent_proxy = __bluetooth_create_agent_proxy(sys_conn, agent_path);
-                        if (!agent_proxy){
-                                fprintf(stdout,"create new agent_proxy failed\n");
-                                return;
-                        }
-
-                        __display_notification( __notify_authorize_request_accept_cb, __notify_authorize_request_cancel_cb,agent_proxy);
-                } else if (!strcasecmp(event_type, "app-confirm-request")) {
-                        /* Not implemented */
-                        fprintf(stdout," Not implemented\n");
-
-                } else if (!strcasecmp(event_type, "push-authorize-request")) {
-                        file = (gchar*) bundle_get_val(user_data, "file");
-                        device_name = (gchar*) bundle_get_val(user_data, "device-name");
-
-                        sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
-                        if (sys_conn == NULL) {
-                                fprintf(stdout,"ERROR: Can't get on system bus");
-                                return;
-                        }
-
-                        obex_proxy = __bluetooth_create_obex_proxy(sys_conn);
-                        if (!obex_proxy){
-                                fprintf(stdout,"create new obex_proxy failed\n");
-                                return;
-                        }
-
-                        __display_notification( __notify_push_authorize_request_accept_cb, __notify_push_authorize_request_cancel_cb,obex_proxy);
-                } else if (!strcasecmp(event_type, "confirm-overwrite-request")) {
-                        /* Not implemented */
-                        fprintf(stdout," Not implemented\n");
-
-                } else if (!strcasecmp(event_type, "keyboard-passkey-request")) {
-                        /* Not implemented */
-                        fprintf(stdout," Not implemented\n");
-
-                } else if (!strcasecmp(event_type, "bt-information")) {
-                        /* Not implemented */
-                        fprintf(stdout," Not implemented\n");
-
-                } else if (!strcasecmp(event_type, "exchange-request")) {
-                        device_name = (gchar*) bundle_get_val(user_data, "device-name");
-                        agent_path = bundle_get_val(user_data, "agent-path");
-
-                        sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
-                        if (sys_conn == NULL) {
-                                fprintf(stdout,"ERROR: Can't get on system bus");
-                                return;
-                        }
-
-                        agent_proxy = __bluetooth_create_agent_proxy(sys_conn, agent_path);
-                        if (!agent_proxy){
-                                fprintf(stdout,"create new agent_proxy failed\n");
-                                return;
-                        }
-
-                        __display_notification( __notify_authorize_request_accept_cb, __notify_authorize_request_cancel_cb,agent_proxy);
-                } else if (!strcasecmp(event_type, "phonebook-request")) {
-                        device_name = bundle_get_val(user_data, "device-name");
-                        agent_path = bundle_get_val(user_data, "agent-path");
-
-                        sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
-                        if (sys_conn == NULL) {
-                                fprintf(stdout,"ERROR: Can't get on system bus");
-                                return;
-                        }
-
-                        agent_proxy = __bluetooth_create_agent_proxy(sys_conn, agent_path);
-                        if (!agent_proxy){
-                                fprintf(stdout,"create new agent_proxy failed\n");
-                                return;
-                        }
-
-                        __display_notification( __notify_authorize_request_accept_cb, __notify_authorize_request_cancel_cb,agent_proxy);
-                } else if (!strcasecmp(event_type, "message-request")) {
-                        device_name = bundle_get_val(user_data, "device-name");
-                        agent_path = bundle_get_val(user_data, "agent-path");
-
-                        sys_conn = dbus_g_bus_get(DBUS_BUS_SYSTEM, NULL);
-                        if (sys_conn == NULL) {
-                                fprintf(stdout,"ERROR: Can't get on system bus");
-                                return;
-                        }
-
-                        agent_proxy = __bluetooth_create_agent_proxy(sys_conn, agent_path);
-                        if (!agent_proxy){
-                                fprintf(stdout,"create new agent_proxy failed\n");
-                                return;
-                        }
-
-                        __display_notification( __notify_authorize_request_accept_cb,  __notify_authorize_request_cancel_cb,agent_proxy);
+                if (notification_list != NULL) {
+                        notification_free_list(notification_list);
+                        notification_list = NULL;
                 }
-        }
-        if (notification_list != NULL) {
-                 notification_free_list(notification_list);
-                 notification_list = NULL;
-        }
-
-        return;
+  }
+  return;
 }
 
 int
 main(int argc, char **argv)
 {
     if (!ecore_init()) {
-        fprintf(stderr, "ERROR: Cannot init Ecore!\n");
+        LOGE("ERROR: Cannot init Ecore!\n");
         return -1;
     }
+
+    bt_initialize();
+
+    bt_agent_register_sync();
 
     notification_resister_changed_cb(__noti_changed_cb, NULL);
     ecore_main_loop_begin();
 
- shutdown:
-    ecore_shutdown();
-    return 0;
+    return 1;
 }
 

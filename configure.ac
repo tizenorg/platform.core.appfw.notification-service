@@ -15,7 +15,7 @@ AM_CONDITIONAL(HAVE_WAYLAND, test x$enable_wayland = xyes)
 if test "x$enable_wayland" = "xyes"; then
   wayland_libs="libwlmessage"
 fi
-PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification dbus-1 bluetooth-api $wayland_libs])
+PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification dbus-1 capi-network-bluetooth glib-2.0 gio-2.0 dlog $wayland_libs])
 AC_SUBST(TIZEN_CFLAGS)
 AC_SUBST(TIZEN_LIBS)
 

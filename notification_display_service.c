@@ -9,6 +9,11 @@
 #ifdef HAVE_WAYLAND
 #include <libwlmessage.h>
 #endif
+#include <bluetooth.h>
+
+#define POPUP_TYPE_INFO "user_info_popup"
+#define POPUP_TYPE_USERCONFIRM "user_confirm_popup"
+#define POPUP_TYPE_USERPROMPT "user_agreement_popup"
 
 
 int fd, wd;
@@ -48,17 +53,21 @@ void display_notifications ()
 
 			 /* react specifically to the source framework and event (TODO : plugins !) */
 			if (!strcmp(pkgname, "bt-agent")) {
+printf("ON EST EN BLUETOOTH\n");
 				notification_get_text (noti, NOTIFICATION_TEXT_TYPE_INFO_1, &info1);
 				if (info1) {
-					if ( (!strcmp(info1, "RequestPinCode")) || (!strcmp(info1, "RequestPasskey")) ) {
-						type = NOTIF_TYPE_USERPROMPT;
+					if (!strcasecmp(POPUP_TYPE_INFO, info1)) {
+						type = NOTIF_TYPE_INFO;
 					}
-					else if (!strcmp(info1, "RequestConfirmation")) {
+					else if (!strcasecmp(POPUP_TYPE_USERCONFIRM, info1)) {
 						type = NOTIF_TYPE_USERCONFIRM;
 						content = strdup("Please confirm");
 					}
+					else if (!strcasecmp(POPUP_TYPE_USERPROMPT, info1)) {
+						type = NOTIF_TYPE_USERPROMPT;
+					}
 				}
-			}
+			} else { printf ("ON N'EST PAS EN BLUETOOTH !\n"); }
 
 #			ifdef HAVE_WAYLAND
 			struct wlmessage *wlmessage = wlmessage_create ();
@@ -85,26 +94,16 @@ void display_notifications ()
 				wlmessage_destroy (wlmessage);
 				return;
 			} else if ((clicked_button == 1) && (type == NOTIF_TYPE_USERCONFIRM)) {
+				printf("CLIQUE SUR OUI !\n");
 				if (!strcmp(pkgname, "bt-agent")) {
-					struct sockaddr_un addr;
-					int socket_fd, nbytes;
-					char buffer[256];
-
-					socket_fd = socket(PF_UNIX, SOCK_STREAM, 0);
-
-					memset (&addr, 0, sizeof(struct sockaddr_un));
-					addr.sun_family = AF_UNIX;
-					snprintf (addr.sun_path, UNIX_PATH_MAX, "/tmp/.bluetooth.service");
-
-					if (connect (socket_fd,
-					             (struct sockaddr *)&addr,
-					             sizeof(struct sockaddr_un)) != 0) {
-						fprintf(stderr, "Cannot connect to /tmp/.bluetooth.service\n");
-					} else {
-						nbytes = snprintf(buffer, 256, "1 clicked");
-						write (socket_fd, buffer, nbytes);
-						close (socket_fd);
-					}
+					printf("ON ENVOIE SYNC(0)\n");
+					bt_agent_reply_sync(0);	
+				}
+			} else if ((clicked_button == 0) && (type == NOTIF_TYPE_USERCONFIRM)) {
+				printf("CLIQUE SUR NON !\n");
+				if (!strcmp(pkgname, "bt-agent")) {
+					printf("ON ENVOIE SYNC(1)\n");
+					bt_agent_reply_sync(1);	
 				}
 			}
 			wlmessage_destroy (wlmessage);
@@ -124,6 +123,10 @@ void display_notifications ()
 int main (int argc, char **argv)
 {
 	char buffer[8192];
+
+	bt_initialize();
+
+	bt_agent_register_sync();
 
 	 /* display notifications once, so it stays useful without inotify  */
 	display_notifications ();

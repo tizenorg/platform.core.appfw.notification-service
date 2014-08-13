@@ -14,7 +14,8 @@ BuildRequires: pkgconfig(notification)
 BuildRequires: pkgconfig(notification-service)
 BuildRequires: pkgconfig(dbus-1)
 BuildRequires: pkgconfig(dbus-glib-1)
-BuildRequires: pkgconfig(bluetooth-api)
+BuildRequires: pkgconfig(dlog)
+BuildRequires: bluetooth-frwk-devel
 BuildRequires: pkgconfig(bundle)
 %if %{with wayland}
 BuildRequires: pkgconfig(libwlmessage)
