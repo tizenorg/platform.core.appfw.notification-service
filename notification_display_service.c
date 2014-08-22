@@ -129,7 +129,7 @@ int main (int argc, char **argv)
 	bt_agent_register_sync();
 
 	 /* display notifications once, so it stays useful without inotify  */
-	display_notifications ();
+	// display_notifications ();
 
 	fd = inotify_init ();
 	if (fd < 0) {

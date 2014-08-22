@@ -2,8 +2,7 @@
 Description=Notifications Popup daemon
 
 [Service]
+Type=simple
 Environment=XDG_RUNTIME_DIR=/run/display
 ExecStart=/usr/bin/notification-display-service
 
-[Install]
-WantedBy=graphical.target
