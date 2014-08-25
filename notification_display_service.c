@@ -10,22 +10,13 @@
 #include <libwlmessage.h>
 #endif
 #include <bluetooth.h>
+#include <glib.h>
 
 #define POPUP_TYPE_INFO "user_info_popup"
 #define POPUP_TYPE_USERCONFIRM "user_confirm_popup"
 #define POPUP_TYPE_USERPROMPT "user_agreement_popup"
 
-
-int fd, wd;
-
-void sigint_handler (int s)
-{
-	inotify_rm_watch (fd, wd);
-	close (fd);
-	exit (0);
-}
-
-void display_notifications ()
+void display_notifications_cb(void *data, notification_type_e notif_type)
 {
 	notification_h noti = NULL;
 	notification_list_h notification_list = NULL;
@@ -122,28 +113,20 @@ printf("ON EST EN BLUETOOTH\n");
 
 int main (int argc, char **argv)
 {
-	char buffer[8192];
+	GMainLoop *mainloop = NULL;
 
 	bt_initialize();
 
 	bt_agent_register_sync();
 
-	 /* display notifications once, so it stays useful without inotify  */
-	// display_notifications ();
+    notification_resister_changed_cb(display_notifications_cb, NULL);
 
-	fd = inotify_init ();
-	if (fd < 0) {
-		fprintf (stderr, "ERROR: cannot initialize inotify\n");
-		fprintf (stderr, "Verify that your kernel integrates it\n");
+    mainloop = g_main_loop_new(NULL, FALSE);
+	if (!mainloop) {
+		printf("failed to create glib main loop");
 		return -1;
 	}
+	g_main_loop_run(mainloop);
 
-	signal (SIGINT, sigint_handler);
-	wd = inotify_add_watch (fd, "/usr/dbspace/.notification.db", IN_MODIFY);
-	while (1) {
-		read (fd, buffer, sizeof(buffer));
-		display_notifications ();
-	}
-
-	return 0;
+    return 0;
 }
