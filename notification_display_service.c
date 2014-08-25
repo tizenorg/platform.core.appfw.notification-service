@@ -52,7 +52,6 @@ printf("ON EST EN BLUETOOTH\n");
 					}
 					else if (!strcasecmp(POPUP_TYPE_USERCONFIRM, info1)) {
 						type = NOTIF_TYPE_USERCONFIRM;
-						content = strdup("Please confirm");
 					}
 					else if (!strcasecmp(POPUP_TYPE_USERPROMPT, info1)) {
 						type = NOTIF_TYPE_USERPROMPT;
