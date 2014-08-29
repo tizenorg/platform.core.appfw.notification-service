@@ -1,3 +1,5 @@
+%bcond_with wayland
+
 Name:       notification-service
 Summary:    Simple notification service
 Version:    0.0.3
@@ -13,7 +15,9 @@ BuildRequires: pkgconfig(notification-service)
 BuildRequires: pkgconfig(dbus-1)
 BuildRequires: pkgconfig(dbus-glib-1)
 BuildRequires: pkgconfig(bluetooth-api)
+BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(bundle)
+BuildRequires: pkgconfig(libwlmessage)
 %{?systemd_requires}
 
 %description

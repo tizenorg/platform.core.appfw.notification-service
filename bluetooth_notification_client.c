@@ -6,6 +6,8 @@
 #include <dbus/dbus-glib.h>
 #include <dbus/dbus-glib-lowlevel.h>
 #include <bundle.h>
+#include <dlog.h>
+#include <libwlmessage.h>
 
 typedef enum {
            BT_AGENT_ACCEPT,
@@ -98,27 +100,46 @@ __display_notification(bt_notification cb_1, bt_notification cb_2, DBusGProxy *p
 {
 
          notification_error_e err = NOTIFICATION_ERROR_NONE;
-         int bt_yesno;
-         bt_yesno = 1;
+         int bt_yesno = 1;
          char line[4];
 
+         struct wlmessage *wlmessage = wlmessage_create();
+         wlmessage_set_message(wlmessage, "Do you confirm ?");
+         wlmessage_add_button(wlmessage, 1, "Yes");
+         wlmessage_add_button(wlmessage, 0, "No");
+         wlmessage_set_default_button(wlmessage, 1);
+         bt_yesno = wlmessage_show(wlmessage, NULL);
+         wlmessage_destroy(wlmessage);
+
+         if (bt_yesno == 1) {
+                 LOGD("user accepts to pair with device ");
+                 (cb_1) (proxy);
+         } else if (bt_yesno == 0) {
+                 LOGD("user rejects to pair with device ");
+                 (cb_2) (proxy);
+	}
+
+#if 0
          fprintf(stdout, "Do you confirm yes or no ? ");
          while ( bt_yesno != 0){
                  if (!fgets(line, sizeof(line), stdin))
                          continue;
-                 if ( strcmp(line,"yes") == 0){
+                 if (strncmp("yes", line, 3) == 0) {
+                         LOGD("user accepts to pair with device ");
                          (cb_1) (proxy);
                          bt_yesno = 0;
-                 } else if ( strcmp(line,"no") == 0){
+                 } else if (strncmp("no", line, 2) == 0) {
+                         LOGD("user rejects to pair with device ");
                          (cb_2) (proxy);
                          bt_yesno = 0;
                  } else {
-                         fprintf(stdout," yes or no :");
+                         fprintf(stdout," yes or no ?\n");
                  }
          }
+#endif
          err = notification_delete_all_by_type("bluetooth-frwk-bt-service", NOTIFICATION_TYPE_NOTI);
          if (err != NOTIFICATION_ERROR_NONE) {
-                  fprintf(stdout, "Unable to remove notifications");
+                  LOGE("Unable to remove notifications");
          }
 
 }
@@ -168,6 +189,11 @@ static void __noti_changed_cb(void *data, notification_type_e type)
                 fprintf(stdout, "NOTIFICATION: %s - %s - %s - %i - %i \n", pkgname, title, content, count, num);
 
                 event_type = bundle_get_val(user_data, "event-type");
+
+                if (!event_type) {
+                        LOGD("Not a bluetooth-related notification...");
+                        return;
+		}
 
                 if(!strcasecmp(event_type, "pin-request")) {
                         /* Not implemented */
@@ -314,7 +340,7 @@ int
 main(int argc, char **argv)
 {
     if (!ecore_init()) {
-        fprintf(stderr, "ERROR: Cannot init Ecore!\n");
+        LOGE("ERROR: Cannot init Ecore!\n");
         return -1;
     }
 
@@ -323,6 +349,6 @@ main(int argc, char **argv)
 
  shutdown:
     ecore_shutdown();
-    return 0;
+    return 1;
 }
 
