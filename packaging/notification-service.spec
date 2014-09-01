@@ -41,6 +41,7 @@ make %{?_smp_mflags}
 %install
 %make_install
 %install_service graphical.target.wants notifications.service
+%install_service graphical.target.wants notifications-display.service
 
 %post
 %systemd_post notifications.service
@@ -54,8 +55,11 @@ make %{?_smp_mflags}
 %files
 %defattr(-,root,root,-)
 %{_bindir}/notification-service
+%{_bindir}/notification-display-service
 %{_unitdir}/notifications.service
+%{_unitdir}/notifications-display.service
 %{_unitdir}/graphical.target.wants/notifications.service
+%{_unitdir}/graphical.target.wants/notifications-display.service
 
 %files test
 %defattr(-,root,root,-)
