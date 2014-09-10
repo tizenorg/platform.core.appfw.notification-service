@@ -56,6 +56,7 @@ make %{?_smp_mflags}
 %defattr(-,root,root,-)
 %{_bindir}/notification-service
 %{_bindir}/notification-display-service
+%{_libdir}/notification-service/plugins/wlmessage.so
 %{_unitdir}/notifications.service
 %{_unitdir}/notifications-display.service
 %{_unitdir}/graphical.target.wants/notifications.service

@@ -1,7 +1,10 @@
+SUBDIRS = plugins
+moduledir = $(libdir)/notification-service/plugins
+
 bin_PROGRAMS = notification-service notification-display-service sample-display-client send-notification bluetooth_notification_client
 
 AM_CFLAGS = $(GCC_CFLAGS)
-AM_CPPFLAGS = $(GCC_CFLAGS)
+AM_CPPFLAGS = $(GCC_CFLAGS) -DPLUGINSDIR='"$(moduledir)"'
 
 notification_service_SOURCES = \
     main.c \
@@ -12,7 +15,7 @@ notification_service_LDADD = $(TIZEN_LIBS)
 
 notification_display_service_SOURCES = notification_display_service.c
 notification_display_service_CFLAGS = -I. $(TIZEN_CFLAGS)
-notification_display_service_LDADD = $(TIZEN_LIBS)
+notification_display_service_LDADD = $(TIZEN_LIBS) $(DLOPEN_LIBS)
 
 send_notification_SOURCES = send_notification.c
 send_notification_CFLAGS = -I. $(TIZEN_CFLAGS)
