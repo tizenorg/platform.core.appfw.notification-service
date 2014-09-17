@@ -35,8 +35,15 @@ This package provides unit test used in the development of the notification serv
 %setup -q -n %{name}-%{version}
 
 %build
-%autogen
+%if "%{profile}" == "ivi"
+notifications_display_service="notifications-display-ivi.service"
+%else
+notifications_display_service="notifications-display.service"
+%endif
+
+%autogen --with-notif-display-service=$notifications_display_service
 make %{?_smp_mflags}
+
 
 %install
 %make_install
