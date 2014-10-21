@@ -87,6 +87,23 @@ void display_notifications_cb (void *data, notification_type_e notif_type)
 	}
 }
 
+void del_pending_notifications(void)
+{
+	notification_h noti = NULL;
+	notification_list_h notification_list = NULL;
+	notification_list_h get_list = NULL;
+
+	notification_get_list (NOTIFICATION_TYPE_NOTI, -1, &notification_list);
+	if (notification_list) {
+		get_list = notification_list_get_head (notification_list);
+		while (get_list) {
+			noti = notification_list_get_data(get_list);
+			notification_delete(noti);
+			LOGD("remove pending notification: %p from DB", noti);
+			get_list = notification_list_remove(get_list, noti);
+		}
+	}
+}
 
 int main (int argc, char **argv)
 {
@@ -109,6 +126,9 @@ retry_socket:
 		sleep (5);
 		goto retry_socket;
 	}
+
+	/* remove all notifications stored in DB before handling new notifications */
+	del_pending_notifications();
 
 retry_service:
 	LOGD("Checking if the notifications server is available...");
