@@ -20,7 +20,7 @@ AC_ARG_WITH(notif-display-service, AS_HELP_STRING([--with-notif-display-service=
 notif_display_service=$with_notif_display_service
 AC_SUBST(notif_display_service)
 
-PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification dbus-1 bluetooth-api dlog libwlmessage])
+PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification dbus-1 capi-network-bluetooth dlog libwlmessage])
 AC_SUBST(TIZEN_CFLAGS)
 AC_SUBST(TIZEN_LIBS)
 

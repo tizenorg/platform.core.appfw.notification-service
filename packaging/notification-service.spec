@@ -14,7 +14,8 @@ BuildRequires: pkgconfig(notification)
 BuildRequires: pkgconfig(notification-service)
 BuildRequires: pkgconfig(dbus-1)
 BuildRequires: pkgconfig(dbus-glib-1)
-BuildRequires: pkgconfig(bluetooth-api)
+# BuildRequires: pkgconfig(capi-network-bluetooth)
+BuildRequires: bluetooth-frwk-devel
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(bundle)
 BuildRequires: pkgconfig(libwlmessage)
@@ -73,4 +74,3 @@ make %{?_smp_mflags}
 %defattr(-,root,root,-)
 %{_bindir}/sample-display-client
 %{_bindir}/send-notification
-%{_bindir}/bluetooth_notification_client
