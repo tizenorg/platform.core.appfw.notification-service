@@ -8,4 +8,4 @@ ExecStart=/usr/bin/notification-display-service
 EnvironmentFile=/etc/sysconfig/weston
 
 [Install]
-WantedBy=graphical.target
+WantedBy=default.target

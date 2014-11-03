@@ -47,8 +47,8 @@ make %{?_smp_mflags}
 
 %install
 %make_install
-%install_service graphical.target.wants notifications.service
-%install_service graphical.target.wants notifications-display.service
+%install_service default.target.wants notifications.service
+%install_service default.target.wants notifications-display.service
 
 %post
 %systemd_post notifications.service
@@ -66,8 +66,8 @@ make %{?_smp_mflags}
 %{_libdir}/notification-service/plugins/wlmessage.so
 %{_unitdir}/notifications.service
 %{_unitdir}/notifications-display.service
-%{_unitdir}/graphical.target.wants/notifications.service
-%{_unitdir}/graphical.target.wants/notifications-display.service
+%{_unitdir}/default.target.wants/notifications.service
+%{_unitdir}/default.target.wants/notifications-display.service
 
 %files test
 %defattr(-,root,root,-)
