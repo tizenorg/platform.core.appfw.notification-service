@@ -66,7 +66,40 @@ int display_notification (notification_h noti)
 
 	LOGD("NOTIFICATION RECEIVED: %s - %s - %s", pkgname, title, content);
 
-	if (!strcasecmp(pkgname, "bluetooth-frwk-bt-service")) {
+	if (!strcmp(pkgname, "package_install")) {
+		bundle *user_data = NULL;
+		const char *buttons_str = NULL;
+		gchar **buttons;
+		int i, button;
+
+		notification_get_execute_option (noti, NOTIFICATION_EXECUTE_TYPE_RESPONDING, NULL, &user_data);
+		buttons_str = bundle_get_val (user_data, "buttons");
+		buttons = g_strsplit (buttons_str, ",", 0);
+
+		struct wlmessage *wlmessage = wlmessage_create ();
+		wlmessage_set_title (wlmessage, title);
+		wlmessage_set_message (wlmessage, content);
+
+		for (i = 0; buttons[i] != NULL; i++)
+			wlmessage_add_button (wlmessage, i, buttons[i]);
+
+		g_strfreev (buttons);
+
+		button = wlmessage_show (wlmessage, NULL);
+		if (button < 0) {
+			wlmessage_destroy (wlmessage);
+			return 0;
+		} else if (button == 1) {
+			LOGD("user clicked on popup button 1");
+			//send_user_reply(proxy, reply_method, BT_AGENT_ACCEPT);
+		} else if (button == 0) {
+			LOGD("user clicked on 'No' popup button 2");
+			//send_user_reply(proxy, reply_method, BT_AGENT_CANCEL);
+		}
+		wlmessage_destroy (wlmessage);
+		notification_send_response (noti, button, NULL);
+		return 1;
+	} else if (!strcasecmp(pkgname, "bluetooth-frwk-bt-service")) {
 		bundle *user_data = NULL;
 		DBusGProxy *proxy;
 		char *reply_method;
