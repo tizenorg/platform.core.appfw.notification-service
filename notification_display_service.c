@@ -128,7 +128,7 @@ retry_socket:
 	}
 
 	/* remove all notifications stored in DB before handling new notifications */
-	del_pending_notifications();
+	//del_pending_notifications();
 
 retry_service:
 	LOGD("Checking if the notifications server is available...");

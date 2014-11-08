@@ -20,6 +20,8 @@
 #include <service/notification_noti.h>
 #include <notification_error.h>
 
+#include <dlog.h>
+
 #include "service_common.h"
 
 #ifndef NOTIFICATION_ADDR
@@ -128,6 +130,7 @@ static void _handler_insert(struct tcb *tcb, struct packet *packet, void *data)
 
 static void _handler_update(struct tcb *tcb, struct packet *packet, void *data)
 {
+	LOGD("_HANDLER_UPDATE");
 	int ret = 0;
 	int priv_id = 0;
 	struct packet *packet_reply = NULL;

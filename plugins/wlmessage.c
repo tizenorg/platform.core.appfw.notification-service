@@ -79,13 +79,16 @@ int display_notification (notification_h noti)
 		struct wlmessage *wlmessage = wlmessage_create ();
 		wlmessage_set_title (wlmessage, title);
 		wlmessage_set_message (wlmessage, content);
+		wlmessage_set_textfield (wlmessage, "Coucou");
 
 		for (i = 0; buttons[i] != NULL; i++)
 			wlmessage_add_button (wlmessage, i, buttons[i]);
 
 		g_strfreev (buttons);
 
-		button = wlmessage_show (wlmessage, NULL);
+		char *textf;
+			wlmessage_set_timeout (wlmessage, 10);
+		button = wlmessage_show (wlmessage, &textf);
 		if (button < 0) {
 			wlmessage_destroy (wlmessage);
 			return 0;
@@ -97,7 +100,7 @@ int display_notification (notification_h noti)
 			//send_user_reply(proxy, reply_method, BT_AGENT_CANCEL);
 		}
 		wlmessage_destroy (wlmessage);
-		notification_send_response (noti, button, NULL);
+		notification_send_response (noti, button, textf);
 		return 1;
 	} else if (!strcasecmp(pkgname, "bluetooth-frwk-bt-service")) {
 		bundle *user_data = NULL;
