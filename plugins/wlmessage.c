@@ -180,7 +180,7 @@ int display_notification (notification_h noti)
 		} else {
 			wlmessage_add_button (wlmessage, 0, "Ok");
 		}
-		wlmessage_set_timeout (wlmessage, 10);
+		wlmessage_set_timeout (wlmessage, 60);
 
 		result = wlmessage_show (wlmessage, NULL);
 		if (result < 0) {
