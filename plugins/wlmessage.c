@@ -56,6 +56,13 @@ int display_notification (notification_h noti)
 	char *title = NULL;
 	char *content = NULL;
 	char *image_path = NULL;
+	int result;
+
+	bundle *resp_data = NULL;
+	const char *buttons_str = NULL;
+	const char *textfield = NULL;
+	gchar **buttons = NULL;
+	int pos;
 
 	notification_get_pkgname (noti, &pkgname);
 	if (pkgname == NULL)
@@ -65,6 +72,14 @@ int display_notification (notification_h noti)
 	notification_get_image (noti, NOTIFICATION_IMAGE_TYPE_ICON, &image_path);
 
 	LOGD("NOTIFICATION RECEIVED: %s - %s - %s", pkgname, title, content);
+
+	 /* verify if we are supposed to respond to this notification */
+	notification_get_execute_option (noti, NOTIFICATION_EXECUTE_TYPE_RESPONDING,
+	                                 NULL, &resp_data);
+	if (resp_data) {
+		buttons_str = bundle_get_val (resp_data, "buttons");
+		textfield = bundle_get_val (resp_data, "textfield");
+	}
 
 	if (!strcasecmp(pkgname, "bluetooth-frwk-bt-service")) {
 		bundle *user_data = NULL;
@@ -155,12 +170,27 @@ int display_notification (notification_h noti)
 		wlmessage_set_title (wlmessage, title);
 		wlmessage_set_icon (wlmessage, image_path);
 		wlmessage_set_message (wlmessage, content);
-		wlmessage_add_button (wlmessage, 0, "Ok");
-		if (wlmessage_show (wlmessage, NULL) < 0) {
+		if (textfield)
+			wlmessage_set_textfield (wlmessage, (char *)textfield);
+		if (buttons_str) {
+			buttons = g_strsplit (buttons_str, ",", 0);
+			for (pos = 0; buttons[pos]; pos++)
+				wlmessage_add_button (wlmessage, pos + 1, buttons[pos]);
+			g_strfreev (buttons);
+		} else {
+			wlmessage_add_button (wlmessage, 0, "Ok");
+		}
+		wlmessage_set_timeout (wlmessage, 60);
+
+		result = wlmessage_show (wlmessage, NULL);
+		if (result < 0) {
 			wlmessage_destroy (wlmessage);
 			return 0;
+		} else if (result > 0) {
+			notification_send_response (noti, result, (char *)textfield);
+			return 1;
+		} else {
+			return 1;
 		}
-
-		return 1;
 	}
 }
