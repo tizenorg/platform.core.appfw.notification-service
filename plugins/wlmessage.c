@@ -174,8 +174,8 @@ int display_notification (notification_h noti)
 			wlmessage_set_textfield (wlmessage, (char *)textfield);
 		if (buttons_str) {
 			buttons = g_strsplit (buttons_str, ",", 0);
-			for (pos = 1; buttons[pos]; pos++)
-				wlmessage_add_button (wlmessage, pos, buttons[pos]);
+			for (pos = 0; buttons[pos]; pos++)
+				wlmessage_add_button (wlmessage, pos + 1, buttons[pos]);
 			g_strfreev (buttons);
 		} else {
 			wlmessage_add_button (wlmessage, 0, "Ok");
