@@ -1,11 +1,8 @@
 [Unit]
 Description=Notifications Popup daemon
-Requires=notifications.service
-After=notifications.service
 
 [Service]
 ExecStart=/usr/bin/notification-display-service
-Environment=XDG_RUNTIME_DIR=/run/user/5000
 
 [Install]
-WantedBy=graphical.target
+WantedBy=default.target
