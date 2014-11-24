@@ -37,4 +37,3 @@ SCRIPT_IN_FILES = \
 install-data-hook:
 	$(mkinstalldirs) $(DESTDIR)/usr/lib/systemd/system/
 	install -m 0644 notifications.service $(DESTDIR)/usr/lib/systemd/system/notifications.service
-	install -m 0644 $(notif_display_service) $(DESTDIR)/usr/lib/systemd/system/notifications-display.service

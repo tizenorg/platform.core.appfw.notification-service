@@ -15,11 +15,6 @@ AC_CHECK_FUNC([dlopen], [],
               AC_CHECK_LIB([dl], [dlopen], DLOPEN_LIBS="-ldl"))
 AC_SUBST(DLOPEN_LIBS)
 
-AC_ARG_WITH(notif-display-service, AS_HELP_STRING([--with-notif-display-service=],[]),,
-            with_notif_display_service="notifications-display.service")
-notif_display_service=$with_notif_display_service
-AC_SUBST(notif_display_service)
-
 PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification dbus-1 bluetooth-api dlog libwlmessage])
 AC_SUBST(TIZEN_CFLAGS)
 AC_SUBST(TIZEN_LIBS)

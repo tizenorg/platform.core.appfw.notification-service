@@ -35,20 +35,23 @@ This package provides unit test used in the development of the notification serv
 %setup -q -n %{name}-%{version}
 
 %build
-%if "%{profile}" == "ivi"
-notifications_display_service="notifications-display-ivi.service"
-%else
-notifications_display_service="notifications-display.service"
-%endif
 
-%autogen --with-notif-display-service=$notifications_display_service
+%autogen
 make %{?_smp_mflags}
 
 
 %install
 %make_install
 %install_service graphical.target.wants notifications.service
+
+%if "%{profile}" == "ivi"
+mkdir -p %{buildroot}/%{_unitdir_user}/default.target.wants
+install -m 0644 notifications-display-ivi.service %{buildroot}/%_unitdir_user/notifications-display.service
+ln -s ../notifications-display.service  %{buildroot}/%{_unitdir_user}/default.target.wants/notifications-display.service
+%else
+install -m 0644 notifications-display.service %{buildroot}/%_unitdir/
 %install_service graphical.target.wants notifications-display.service
+%endif
 
 %post
 %systemd_post notifications.service
@@ -65,9 +68,14 @@ make %{?_smp_mflags}
 %{_bindir}/notification-display-service
 %{_libdir}/notification-service/plugins/wlmessage.so
 %{_unitdir}/notifications.service
-%{_unitdir}/notifications-display.service
 %{_unitdir}/graphical.target.wants/notifications.service
+%if "%{profile}" == "ivi"
+%{_unitdir_user}/notifications-display.service
+%{_unitdir_user}/default.target.wants/notifications-display.service
+%else
+%{_unitdir}/notifications-display.service
 %{_unitdir}/graphical.target.wants/notifications-display.service
+%endif
 
 %files test
 %defattr(-,root,root,-)
