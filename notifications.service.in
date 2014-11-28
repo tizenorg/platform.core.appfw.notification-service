@@ -1,5 +1,7 @@
 [Unit]
 Description=Notifications daemon
+Requires=vconf-setup.service
+After=vconf-setup.service
 
 [Service]
 ExecStart=/usr/bin/notification-service
