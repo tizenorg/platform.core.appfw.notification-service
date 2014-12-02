@@ -5,7 +5,7 @@ Summary:    Simple notification service
 Version:    0.0.3
 Release:    1
 Group:      Application Framework/Notifications
-License:    Flora
+License:    Apache
 Source0:    %{name}-%{version}.tar.bz2
 BuildRequires: pkgconfig(eina)
 BuildRequires: pkgconfig(ecore)
