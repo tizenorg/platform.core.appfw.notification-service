@@ -7,4 +7,4 @@ After=vconf-setup.service
 ExecStart=/usr/bin/notification-service
 
 [Install]
-WantedBy=graphical.target
+WantedBy=default.target

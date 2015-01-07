@@ -42,7 +42,7 @@ make %{?_smp_mflags}
 
 %install
 %make_install
-%install_service graphical.target.wants notifications.service
+%install_service default.target.wants notifications.service
 
 %if "%{profile}" == "ivi"
 mkdir -p %{buildroot}/%{_unitdir_user}/default.target.wants
@@ -50,7 +50,7 @@ install -m 0644 notifications-display-ivi.service %{buildroot}/%_unitdir_user/no
 ln -s ../notifications-display.service  %{buildroot}/%{_unitdir_user}/default.target.wants/notifications-display.service
 %else
 install -m 0644 notifications-display.service %{buildroot}/%_unitdir/
-%install_service graphical.target.wants notifications-display.service
+%install_service default.target.wants notifications-display.service
 %endif
 
 %post
@@ -68,13 +68,13 @@ install -m 0644 notifications-display.service %{buildroot}/%_unitdir/
 %{_bindir}/notification-display-service
 %{_libdir}/notification-service/plugins/wlmessage.so
 %{_unitdir}/notifications.service
-%{_unitdir}/graphical.target.wants/notifications.service
+%{_unitdir}/default.target.wants/notifications.service
 %if "%{profile}" == "ivi"
 %{_unitdir_user}/notifications-display.service
 %{_unitdir_user}/default.target.wants/notifications-display.service
 %else
 %{_unitdir}/notifications-display.service
-%{_unitdir}/graphical.target.wants/notifications-display.service
+%{_unitdir}/default.target.wants/notifications-display.service
 %endif
 
 %files test
