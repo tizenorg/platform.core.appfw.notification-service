@@ -60,8 +60,10 @@ int display_notification (notification_h noti)
 
 	bundle *resp_data = NULL;
 	const char *buttons_str = NULL;
+	const char *timeout_str = NULL;
 	const char *textfield = NULL;
 	gchar **buttons = NULL;
+	int timeout;
 	int pos;
 
 	notification_get_pkgname (noti, &pkgname);
@@ -78,6 +80,7 @@ int display_notification (notification_h noti)
 	                                 NULL, &resp_data);
 	if (resp_data) {
 		buttons_str = bundle_get_val (resp_data, "buttons");
+		timeout_str = bundle_get_val (resp_data, "timeout");
 		textfield = bundle_get_val (resp_data, "textfield");
 	}
 
@@ -180,7 +183,12 @@ int display_notification (notification_h noti)
 		} else {
 			wlmessage_add_button (wlmessage, 0, "Ok");
 		}
-		wlmessage_set_timeout (wlmessage, 60);
+		if (timeout_str) {
+			timeout = g_ascii_strtoll (timeout_str, NULL, 10);
+			wlmessage_set_timeout (wlmessage, timeout);
+		} else {
+			wlmessage_set_timeout (wlmessage, 60);
+		}
 
 		result = wlmessage_show (wlmessage, NULL);
 		if (result < 0) {
