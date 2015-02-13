@@ -1,3 +1,4 @@
+%bcond_with x
 %bcond_with wayland
 
 Name:       notification-service
@@ -36,7 +37,7 @@ This package provides unit test used in the development of the notification serv
 
 %build
 
-%autogen
+%reconfigure
 make %{?_smp_mflags}
 
 
@@ -49,7 +50,12 @@ mkdir -p %{buildroot}/%{_unitdir_user}/default.target.wants
 install -m 0644 notifications-display-ivi.service %{buildroot}/%_unitdir_user/notifications-display.service
 ln -s ../notifications-display.service  %{buildroot}/%{_unitdir_user}/default.target.wants/notifications-display.service
 %else
-install -m 0644 notifications-display.service %{buildroot}/%_unitdir/
+%if %{with x}
+install -m 0644 notifications-display-x11.service %{buildroot}/%_unitdir/notifications-display.service
+%endif
+%if %{with wayland}
+install -m 0644 notifications-display-wayland.service %{buildroot}/%_unitdir/notifications-display.service
+%endif
 %install_service default.target.wants notifications-display.service
 %endif
 

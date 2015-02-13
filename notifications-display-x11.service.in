@@ -1,0 +1,11 @@
+[Unit]
+Description=Notifications Popup daemon
+Requires=notifications.service display-manager-run.service
+After=notifications.service display-manager-run.service
+
+[Service]
+ExecStart=/usr/bin/notification-display-service
+Environment=DISPLAY=:0
+
+[Install]
+WantedBy=default.target
