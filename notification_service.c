@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000 - 2013 Samsung Electronics Co., Ltd. All rights reserved.
+ * Copyright (c) 2000 - 2015 Samsung Electronics Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -318,6 +318,9 @@ static int service_thread_main(struct tcb *tcb, struct packet *packet, void *dat
 	switch (packet_type(packet)) {
 	case PACKET_REQ:
 		/* Need to send reply packet */
+		if (!check_cynara(tcb)) {
+			return -EPERM;
+		}
 		for (i = 0; service_req_table[i].cmd; i++) {
 			if (strcmp(service_req_table[i].cmd, command))
 				continue;

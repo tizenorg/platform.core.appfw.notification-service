@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000 - 2013 Samsung Electronics Co., Ltd. All rights reserved.
+ * Copyright (c) 2000 - 2015 Samsung Electronics Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <Eina.h>
+
+#include <cynara-client.h>
+#include <cynara-creds-socket.h>
+#include <cynara-session.h>
 
 #include "service_common.h"
 
@@ -57,6 +61,8 @@ struct service_context {
 	pthread_t server_thid; /*!< Server thread Id */
 	int fd; /*!< Server socket handle */
 
+	cynara *p_cynara; /*!< Cynara handle */
+
 	Eina_List *tcb_list; /*!< TCB list, list of every thread for client connections */
 
 	Eina_List *packet_list;
@@ -85,6 +91,9 @@ struct tcb { /* Thread controll block */
 	struct service_context *svc_ctx;
 	pthread_t thid; /*!< Thread Id */
 	int fd; /*!< Connection handle */
+	char *client; /*!< Client socket credential */
+	char *user; /*!< User socket credential */
+	char *session; /*!< Session context for cynara */
 	enum tcb_type type;
 };
 
@@ -117,6 +126,13 @@ static void *client_packet_pump_main(void *data)
 
 	ret = 0;
 	recv_state = RECV_INIT;
+
+	/*
+	 * Fill connection credentials
+	 */
+	if (!fill_creds(tcb)) {
+		ret = -EPERM;
+	}
 	/*!
 	 * \note
 	 * To escape from the switch statement, we use this ret value
@@ -360,6 +376,9 @@ static inline void tcb_destroy(struct service_context *svc_ctx, struct tcb *tcb)
 	 * Close the connection, and then collecting the return value of thread
 	 */
 	secure_socket_destroy_handle(tcb->fd);
+	free(tcb->user);
+	free(tcb->client);
+	free(tcb->session);
 
 	status = pthread_join(tcb->thid, &ret);
 
@@ -564,8 +583,8 @@ static void *server_main(void *data)
  */
 struct service_context *service_common_create(const char *addr, int (*service_thread_main)(struct tcb *tcb, struct packet *packet, void *data), void *data)
 {
-	int status;
-	struct service_context *svc_ctx;
+	int status, ret;
+	struct service_context *svc_ctx = NULL;
 
 	if (!service_thread_main || !addr) {
 		return NULL;
@@ -611,12 +630,24 @@ struct service_context *service_common_create(const char *addr, int (*service_th
 		return NULL;
 	}
 
+	ret = cynara_initialize(&svc_ctx->p_cynara, NULL);
+	if (ret != CYNARA_API_SUCCESS) {
+		print_cynara_error("Cynara initialize failed", ret);
+		status = pthread_mutex_destroy(&svc_ctx->packet_list_lock);
+		CLOSE_PIPE(svc_ctx->evt_pipe);
+		CLOSE_PIPE(svc_ctx->tcb_pipe);
+		secure_socket_destroy_handle(svc_ctx->fd);
+		free(svc_ctx);
+		return NULL;
+	}
+
 	status = pthread_create(&svc_ctx->server_thid, NULL, server_main, svc_ctx);
 	if (status != 0) {
 		status = pthread_mutex_destroy(&svc_ctx->packet_list_lock);
 		CLOSE_PIPE(svc_ctx->evt_pipe);
 		CLOSE_PIPE(svc_ctx->tcb_pipe);
 		secure_socket_destroy_handle(svc_ctx->fd);
+		cynara_finish(svc_ctx->p_cynara);
 		free(svc_ctx);
 		return NULL;
 	}
@@ -643,8 +674,9 @@ int service_common_destroy(struct service_context *svc_ctx)
 	secure_socket_destroy_handle(svc_ctx->fd);
 
 	status = pthread_join(svc_ctx->server_thid, &ret);
-
 	status = pthread_mutex_destroy(&svc_ctx->packet_list_lock);
+
+	(void)cynara_finish(svc_ctx->p_cynara);
 
 	CLOSE_PIPE(svc_ctx->evt_pipe);
 	CLOSE_PIPE(svc_ctx->tcb_pipe);
@@ -792,6 +824,74 @@ int service_common_del_timer(struct service_context *svc_ctx, struct service_eve
 
 	close(item->info.timer.fd);
 	free(item);
+	return 0;
+}
+
+
+void print_cynara_error(int ret, char *msg) {
+	char buff[255] = {0};
+	if (cynara_strerror(ret, buff, sizeof(buff)) != CYNARA_API_SUCCESS) {
+		fprintf(stderr, "Cynara strerror failed\n");
+	}
+	fprintf(stderr, "%s (%d) : %s\n", msg, ret, buff);
+}
+
+int fill_creds(struct tcb *tcb) {
+	int ret;
+	char *client = NULL;
+	char *user = NULL;
+	char *session = NULL;
+	pid_t pid;
+
+	ret = cynara_creds_socket_get_client(tcb->fd, CLIENT_METHOD_DEFAULT, &client);
+	if (ret != CYNARA_API_SUCCESS) {
+		print_cynara_error(ret, "Cynara creds socket get client failed");
+		return 0;
+	}
+
+	ret = cynara_creds_socket_get_user(tcb->fd, USER_METHOD_DEFAULT, &user);
+	if (ret != CYNARA_API_SUCCESS) {
+		free(client);
+		print_cynara_error(ret, "Cynara creds socket get user failed");
+		return 0;
+	}
+
+	ret = cynara_creds_socket_get_pid(tcb->fd, &pid);
+	if (ret != CYNARA_API_SUCCESS) {
+		free(client);
+		free(user);
+		print_cynara_error(ret, "Cynara creds socket get pid failed");
+		return 0;
+	}
+
+	session = cynara_session_from_pid(pid);
+	if (!session) {
+		free(client);
+		free(user);
+		fprintf(stderr, "Cynara session from pid failed");
+		return 0;
+	}
+
+	tcb->user = user;
+	tcb->client = client;
+	tcb->session = session;
+	return 1;
+}
+
+int check_cynara(struct tcb *tcb) {
+	int fd = tcb->fd;
+	int ret;
+	static const char *privilege = "http://tizen.org/privilege/notification";
+
+	ret = cynara_check(tcb->svc_ctx->p_cynara, tcb->client, tcb->session, tcb->user, privilege);
+
+	if (ret == CYNARA_API_ACCESS_ALLOWED) {
+		return 1;
+	}
+	if (ret != CYNARA_API_ACCESS_DENIED) {
+		print_cynara_error(ret, "Cynara check failed");
+	}
+
 	return 0;
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000 - 2013 Samsung Electronics Co., Ltd. All rights reserved.
+ * Copyright (c) 2000 - 2015 Samsung Electronics Co., Ltd. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,6 +37,9 @@ extern int service_common_unicast_packet(struct tcb *tcb, struct packet *packet)
 
 extern struct service_event_item *service_common_add_timer(struct service_context *svc_ctx, double timer, int (*timer_cb)(struct service_context *svc_cx, void *data), void *data);
 extern int service_common_del_timer(struct service_context *svc_ctx, struct service_event_item *item);
+
+void print_cynara_error(int ret, char *msg);
+int check_cynara(struct tcb *tcb);
 
 #define CRITICAL_SECTION_BEGIN(handle) \
 do { \
