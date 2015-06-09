@@ -1,14 +1,15 @@
 #include <Ecore.h>
 #include <Ecore_Getopt.h>
 #include <notification.h>
+#include <notification_internal.h>
 #include <unistd.h>
 
 const char *error_to_string(notification_error_e error)
 {
-    if (error == NOTIFICATION_ERROR_INVALID_DATA)
-        return "NOTIFICATION_ERROR_INVALID_DATA";
-    if (error == NOTIFICATION_ERROR_NO_MEMORY)
-        return "NOTIFICATION_ERROR_NO_MEMORY";
+    if (error == NOTIFICATION_ERROR_INVALID_PARAMETER)
+        return "NOTIFICATION_ERROR_INVALID_PARAMETER";
+    if (error == NOTIFICATION_ERROR_OUT_OF_MEMORY)
+        return "NOTIFICATION_ERROR_OUT_OF_MEMORY";
     if (error == NOTIFICATION_ERROR_FROM_DB)
         return "NOTIFICATION_ERROR_FROM_DB";
     if (error == NOTIFICATION_ERROR_ALREADY_EXIST_ID)
@@ -17,8 +18,8 @@ const char *error_to_string(notification_error_e error)
         return "NOTIFICATION_ERROR_FROM_DBUS";
     if (error == NOTIFICATION_ERROR_NOT_EXIST_ID)
         return "NOTIFICATION_ERROR_NOT_EXIST_ID";
-    if (error == NOTIFICATION_ERROR_IO)
-        return "NOTIFICATION_ERROR_IO";
+    if (error == NOTIFICATION_ERROR_IO_ERROR)
+        return "NOTIFICATION_ERROR_IO_ERROR";
     if (error == NOTIFICATION_ERROR_SERVICE_NOT_READY)
         return "NOTIFICATION_ERROR_SERVICE_NOT_READY";
     if (error == NOTIFICATION_ERROR_NONE)
