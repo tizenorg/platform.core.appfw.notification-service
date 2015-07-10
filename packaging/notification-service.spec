@@ -18,6 +18,8 @@ BuildRequires: pkgconfig(bluetooth-api)
 BuildRequires: pkgconfig(dlog)
 BuildRequires: pkgconfig(bundle)
 BuildRequires: pkgconfig(libwlmessage)
+BuildRequires: pkgconfig(vconf)
+BuildRequires: pkgconfig(vconf-internal-keys)
 %{?systemd_requires}
 
 %description

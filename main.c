@@ -1,5 +1,8 @@
 #include <Ecore.h>
+#include <notification_service.h>
 #include <unistd.h>
+#include <vconf.h>
+#include <vconf-internal-livebox-keys.h>
 
 int
 main(int argc, char **argv)
@@ -14,10 +17,13 @@ main(int argc, char **argv)
         goto shutdown;
     }
 
+    vconf_set_bool(VCONFKEY_MASTER_STARTED, 1);
     ecore_main_loop_begin();
 
  shutdown:
+    vconf_set_bool(VCONFKEY_MASTER_STARTED, 0);
     ecore_shutdown();
+
     return 0;
 }
 
