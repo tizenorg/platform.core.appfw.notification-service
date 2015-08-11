@@ -19,6 +19,6 @@ PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification dbus-1 bluetooth-ap
 AC_SUBST(TIZEN_CFLAGS)
 AC_SUBST(TIZEN_LIBS)
 
-AC_CONFIG_FILES([Makefile plugins/Makefile notifications.service notifications-display-ivi.service notifications-display-x11.service notifications-display-wayland.service])
+AC_CONFIG_FILES([Makefile plugins/Makefile notifications.service])
 AC_PROG_RANLIB([ranlib])
 AC_OUTPUT

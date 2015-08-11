@@ -44,21 +44,7 @@ make %{?_smp_mflags}
 
 %install
 %make_install
-%install_service default.target.wants notifications.service
-
-%if "%{profile}" == "ivi"
-mkdir -p %{buildroot}/%{_unitdir_user}/default.target.wants
-install -m 0644 notifications-display-ivi.service %{buildroot}/%_unitdir_user/notifications-display.service
-ln -s ../notifications-display.service  %{buildroot}/%{_unitdir_user}/default.target.wants/notifications-display.service
-%else
-%if %{with x}
-install -m 0644 notifications-display-x11.service %{buildroot}/%_unitdir/notifications-display.service
-%endif
-%if %{with wayland}
-install -m 0644 notifications-display-wayland.service %{buildroot}/%_unitdir/notifications-display.service
-%endif
-%install_service default.target.wants notifications-display.service
-%endif
+%install_service graphical.target.wants notifications.service
 
 %post
 %systemd_post notifications.service
@@ -72,17 +58,9 @@ install -m 0644 notifications-display-wayland.service %{buildroot}/%_unitdir/not
 %files
 %defattr(-,root,root,-)
 %{_bindir}/notification-service
-%{_bindir}/notification-display-service
 %{_libdir}/notification-service/plugins/wlmessage.so
 %{_unitdir}/notifications.service
-%{_unitdir}/default.target.wants/notifications.service
-%if "%{profile}" == "ivi"
-%{_unitdir_user}/notifications-display.service
-%{_unitdir_user}/default.target.wants/notifications-display.service
-%else
-%{_unitdir}/notifications-display.service
-%{_unitdir}/default.target.wants/notifications-display.service
-%endif
+%{_unitdir}/graphical.target.wants/notifications.service
 
 %files test
 %defattr(-,root,root,-)

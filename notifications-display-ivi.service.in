@@ -1,8 +1,0 @@
-[Unit]
-Description=Notifications Popup daemon
-
-[Service]
-ExecStart=/usr/bin/notification-display-service
-
-[Install]
-WantedBy=default.target
