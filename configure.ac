@@ -15,7 +15,7 @@ AC_CHECK_FUNC([dlopen], [],
               AC_CHECK_LIB([dl], [dlopen], DLOPEN_LIBS="-ldl"))
 AC_SUBST(DLOPEN_LIBS)
 
-PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification dbus-1 bluetooth-api dlog libwlmessage vconf vconf-internal-keys cynara-client cynara-creds-socket cynara-session])
+PKG_CHECK_MODULES([TIZEN], [eina ecore com-core notification dbus-1 dlog libwlmessage vconf vconf-internal-keys cynara-client cynara-creds-socket cynara-session])
 AC_SUBST(TIZEN_CFLAGS)
 AC_SUBST(TIZEN_LIBS)
 
