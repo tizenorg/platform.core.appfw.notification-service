@@ -10,8 +10,9 @@ notification_service_SOURCES = \
     main.c \
     notification_service.c \
     service_common.c
-notification_service_CFLAGS = -I. $(TIZEN_CFLAGS)
+notification_service_CFLAGS = -I. $(TIZEN_CFLAGS) -fPIE
 notification_service_LDADD = $(TIZEN_LIBS)
+notification_service_LDFLAGS = $(TIZEN_LDFLAGS) -pie
 
 send_notification_SOURCES = send_notification.c
 send_notification_CFLAGS = -I. $(TIZEN_CFLAGS)
