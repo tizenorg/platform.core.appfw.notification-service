@@ -6,7 +6,7 @@ Summary:    Simple notification service
 Version:    0.0.3
 Release:    1
 Group:      Application Framework/Notifications
-License:    Apache
+License:    Apache-2.0
 Source0:    %{name}-%{version}.tar.bz2
 BuildRequires: pkgconfig(eina)
 BuildRequires: pkgconfig(ecore)
