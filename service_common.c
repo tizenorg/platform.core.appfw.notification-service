@@ -303,6 +303,9 @@ static void *client_packet_pump_main(void *data)
 	 */
 	write(svc_ctx->tcb_pipe[PIPE_WRITE], &tcb, sizeof(tcb)) != sizeof(tcb);
 
+	if (ptr)
+		free(ptr);
+
 	return (void *)ret;
 }
 
